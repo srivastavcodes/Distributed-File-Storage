@@ -12,7 +12,7 @@ func TestTCPTransport(t *testing.T) {
 		HandshakeFn: NOPHandshakeFn,
 	}
 	trt := NewTCPTransport(opts)
-	assert.Equal(t, trt.ListenAddr, opts.ListenAddr)
+	assert.Equal(t, trt.opts.ListenAddr, opts.ListenAddr)
 
 	assert.NoError(t, trt.ListenAndAccept())
 }

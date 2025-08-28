@@ -6,24 +6,24 @@ import (
 )
 
 type Decoder interface {
-	Decode(reader io.Reader, msg *Message) error
+	Decode(reader io.Reader, rpc *RPC) error
 }
 
 type GOBDecoder struct{}
 
-func (dec GOBDecoder) Decode(reader io.Reader, msg *Message) error {
-	return gob.NewDecoder(reader).Decode(msg)
+func (dec GOBDecoder) Decode(reader io.Reader, rpc *RPC) error {
+	return gob.NewDecoder(reader).Decode(rpc)
 }
 
 type DefaultDecoder struct{}
 
-func (dec DefaultDecoder) Decode(reader io.Reader, msg *Message) error {
-	buf := make([]byte, 1028)
+func (dec DefaultDecoder) Decode(reader io.Reader, rpc *RPC) error {
+	buf := make([]byte, 16384)
 
 	n, err := reader.Read(buf)
 	if err != nil {
 		return err
 	}
-	msg.Payload = buf[:n]
+	rpc.Payload = buf[:n]
 	return nil
 }
