@@ -80,6 +80,15 @@ func NewStore(opts StoreOpts) *Store {
 	}
 }
 
+func (s *Store) Exists(key string) bool {
+	pathkey := s.opts.PathTransformFn(key)
+
+	pathToFile := filepath.Join(s.opts.Root, pathkey.FullPath())
+	_, err := os.Stat(pathToFile)
+
+	return !errors.Is(err, fs.ErrNotExist)
+}
+
 // readStream looks for the file for (key) and reads the file contents
 // into a buffer to read from. Returns a reader to read from and
 // errs in case of PathError
@@ -93,6 +102,7 @@ func (s *Store) readStream(key string) (io.Reader, error) {
 
 	n, err := io.Copy(buf, file)
 	defer func() {
+		file.Close()
 		s.log.Info().Msgf("read (%d) bytes from [%s]", n, file.Name())
 	}()
 	return buf, err
@@ -121,15 +131,6 @@ func (s *Store) writeStream(key string, r io.Reader) error {
 	return nil
 }
 
-func (s *Store) Exists(key string) bool {
-	pathkey := s.opts.PathTransformFn(key)
-
-	pathToFile := filepath.Join(s.opts.Root, pathkey.FullPath())
-	_, err := os.Stat(pathToFile)
-
-	return !errors.Is(err, fs.ErrNotExist)
-}
-
 func (s *Store) DeleteHead(key string) error {
 	pathkey := s.opts.PathTransformFn(key)
 
@@ -141,8 +142,12 @@ func (s *Store) DeleteHead(key string) error {
 	}
 	err := os.RemoveAll(filepath.Join(paths[0], paths[1]))
 	if err != nil {
-		return fmt.Errorf("contents at %s could not be deleted", paths[1])
+		return fmt.Errorf("invalid path: %s", paths[1])
 	}
 	s.log.Info().Msgf("deleted [%s] from disk", pathToFile)
 	return nil
+}
+
+func (s *Store) DeleteRoot() error {
+	return os.RemoveAll(s.opts.Root)
 }
