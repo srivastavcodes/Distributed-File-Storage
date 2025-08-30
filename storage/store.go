@@ -89,6 +89,14 @@ func (s *Store) Exists(key string) bool {
 	return !errors.Is(err, fs.ErrNotExist)
 }
 
+func (s *Store) Write(key string, r io.Reader) error {
+	return s.writeStream(key, r)
+}
+
+func (s *Store) Read(key string) (io.Reader, error) {
+	return s.readStream(key)
+}
+
 // readStream looks for the file for (key) and reads the file contents
 // into a buffer to read from. Returns a reader to read from and
 // errs in case of PathError
