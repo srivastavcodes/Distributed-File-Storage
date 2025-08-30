@@ -51,8 +51,7 @@ func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 	writer := zerolog.NewConsoleWriter()
 	logger := zerolog.New(writer).With().Timestamp().Logger()
 
-	return &TCPTransport{
-		opts:  opts,
+	return &TCPTransport{opts: opts,
 		rpcch: make(chan RPC),
 		log:   logger,
 	}
