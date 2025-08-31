@@ -117,13 +117,13 @@ func (s *Store) readStream(key string) (io.Reader, error) {
 }
 
 func (s *Store) writeStream(key string, r io.Reader) error {
-	pathname := s.opts.PathTransformFn(key)
+	pathkey := s.opts.PathTransformFn(key)
 
-	rootPathName := filepath.Join(s.opts.Root, pathname.PathName)
+	rootPathName := filepath.Join(s.opts.Root, pathkey.PathName)
 	if err := os.MkdirAll(rootPathName, 0755); err != nil {
 		return err
 	}
-	rootFilePath := filepath.Join(s.opts.Root, pathname.FullPath())
+	rootFilePath := filepath.Join(s.opts.Root, pathkey.FullPath())
 
 	file, err := os.OpenFile(rootFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

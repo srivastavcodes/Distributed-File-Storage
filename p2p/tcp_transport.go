@@ -64,14 +64,15 @@ func (prt *TCPTransport) ListenAndAccept() error {
 		return err
 	}
 	go prt.startAcceptLoop()
+	prt.log.Info().Msgf("TCP transport listening on port=%s", prt.opts.ListenAddr)
 	return nil
 }
 
 // Consume will return a read-only channel for reading the incoming messages
 // received from another peer in the network.
-func (prt *TCPTransport) Consume() <-chan RPC {
-	return prt.rpcch
-}
+func (prt *TCPTransport) Consume() <-chan RPC { return prt.rpcch }
+
+func (prt *TCPTransport) Close() error { return prt.listener.Close() }
 
 func (prt *TCPTransport) startAcceptLoop() {
 	for {
@@ -106,11 +107,10 @@ func (prt *TCPTransport) handleConn(conn net.Conn) {
 		if err = prt.opts.Decoder.Decode(conn, &rpc); err != nil {
 			switch {
 			case errors.Is(err, net.ErrClosed):
-				prt.log.Error().Msgf("TCP error %s", err)
+				prt.log.Err(err).Msg("client connection closed")
 				return
 			case err == io.EOF:
-				prt.log.Error().
-					Msgf("client %s disconnected", conn.RemoteAddr())
+				prt.log.Error().Msgf("client %s disconnected", conn.RemoteAddr())
 				return
 			}
 			prt.log.Error().Msgf("TCP read error: %s", err)
